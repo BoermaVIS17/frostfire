@@ -283,7 +283,10 @@ export default class MainScene extends Phaser.Scene {
 
   preload() {
     // Create all textures dynamically (no asset files needed)
+    console.log('Creating player textures...');
     this.createPlayerTextures();
+    console.log('Player textures created:', this.textures.exists('player_front'), this.textures.exists('player_back'));
+    
     this.createTreeTexture();
     this.createFurnaceTexture();
     this.createBearTexture();
@@ -296,6 +299,7 @@ export default class MainScene extends Phaser.Scene {
     const g = this.make.graphics({x:0,y:0});
     g.fillStyle(0xFFFFFF); g.fillCircle(2,2,2);
     g.generateTexture('snow_particle', 4, 4);
+    g.destroy();
   }
 
   create() {

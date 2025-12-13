@@ -1,4 +1,4 @@
-# Save System & Progression - Complete Implementation 💾
+# Frozen Fortune - Save System & Progression 💾
 
 ## Overview
 Comprehensive save/load system with **local storage**, **auto-save**, **progression tracking**, **high scores**, and **achievements**. Players can now build over multiple sessions without losing progress!
@@ -286,8 +286,8 @@ SaveManager.importSave(jsonString);
 
 ### Storage Keys
 ```typescript
-SAVE_KEY = 'frostfire_save'
-PROGRESSION_KEY = 'frostfire_progression'
+SAVE_KEY = 'frozen_fortune_save'
+PROGRESSION_KEY = 'frozen_fortune_progression'
 ```
 
 ### Error Handling
@@ -340,8 +340,8 @@ this.newStat = saveData.newStat;
 ### Clearing Save Data
 ```javascript
 // In browser console
-localStorage.removeItem('frostfire_save');
-localStorage.removeItem('frostfire_progression');
+localStorage.removeItem('frozen_fortune_save');
+localStorage.removeItem('frozen_fortune_progression');
 ```
 
 ---

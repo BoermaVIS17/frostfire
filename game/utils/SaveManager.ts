@@ -32,8 +32,8 @@ export interface ProgressionData {
 }
 
 export default class SaveManager {
-  private static readonly SAVE_KEY = 'frostfire_save';
-  private static readonly PROGRESSION_KEY = 'frostfire_progression';
+  private static readonly SAVE_KEY = 'frozen_fortune_save';
+  private static readonly PROGRESSION_KEY = 'frozen_fortune_progression';
   private static readonly AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 
   /**

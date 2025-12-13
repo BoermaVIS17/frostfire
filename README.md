@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Frozen Fortune ❄️💎
 
-# Run and deploy your AI Studio app
+A survival game built with Phaser 3 and React where you must gather resources, manage temperature, and survive in a frozen wilderness.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1GcIoqKmhgK8iF6ncm_dmr7CEdKtbf9Oc
+- **Character System**: Directional sprites with WASD/arrow key movement
+- **Resource Gathering**: Wood, stone, and meat collection with visual feedback
+- **Combat System**: Craft spears and fight bears
+- **Weather Events**: Survive intense blizzard storms
+- **Automation**: Build huts and quarries for automated resource gathering
+- **Save System**: Auto-save with progression tracking and achievements
+- **Tech Tree**: Unlock buildings and upgrades as you progress
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Run the app:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser to the local development server
+
+## Gameplay
+
+- **WASD/Arrow Keys** - Move character
+- **Space** - Gather resources from trees and rocks
+- **Click** - Attack with spear (when equipped)
+- **Survive** - Keep the furnace burning to maintain temperature

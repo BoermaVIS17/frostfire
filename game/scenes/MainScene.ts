@@ -282,18 +282,11 @@ export default class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load character sprite images
-    this.load.image('player_front', 'assets/player_front.png');
-    this.load.image('player_back', 'assets/player_back.png');
-    this.load.image('player_left', 'assets/player_left.png');
-    this.load.image('player_right', 'assets/player_right.png');
-    this.load.image('player_back_walk', 'assets/player_back_walk.png');
-    
+    // Create all textures dynamically (no asset files needed)
+    this.createPlayerTextures();
     this.createTreeTexture();
     this.createFurnaceTexture();
     this.createBearTexture();
-    
-    // New Textures
     this.createSpearTexture();
     this.createMeatTexture();
     this.createHutTexture();
@@ -1028,33 +1021,49 @@ export default class MainScene extends Phaser.Scene {
   }
 
   // --- Texture Generators ---
-  private createPlayerTexture() {
+  private createPlayerTextures() {
+    // Create all 4 directional player sprites
     const g = this.make.graphics({x:0,y:0});
     
-    // Draw Eskimo Style Sprite (32x32)
-    // Parka Body
-    g.fillStyle(0x3498db); // Blue
-    g.fillRoundedRect(4, 8, 24, 20, 8); 
+    // Front view
+    g.clear();
+    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
+    g.fillStyle(0xecf0f1); g.fillRect(14, 8, 4, 20); g.fillRect(4, 24, 24, 4);
+    g.fillStyle(0xecf0f1); g.fillCircle(16, 10, 10);
+    g.fillStyle(0x2c3e50); g.fillCircle(16, 10, 8);
+    g.fillStyle(0xe67e22); g.fillCircle(16, 11, 5);
+    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
+    g.generateTexture('player_front', 32, 32);
     
-    // White Fur Trim (Vertical)
-    g.fillStyle(0xecf0f1); 
-    g.fillRect(14, 8, 4, 20);
-    g.fillRect(4, 24, 24, 4); // Bottom trim
-
-    // Head/Hood
-    g.fillStyle(0xecf0f1); // White Hood
-    g.fillCircle(16, 10, 10);
-    g.fillStyle(0x2c3e50); // Dark inner hood
-    g.fillCircle(16, 10, 8);
-    g.fillStyle(0xe67e22); // Face (Skin tone)
-    g.fillCircle(16, 11, 5);
-
-    // Boots
-    g.fillStyle(0x5d4037);
-    g.fillEllipse(10, 30, 8, 6);
-    g.fillEllipse(22, 30, 8, 6);
-
-    g.generateTexture('player', 32, 32);
+    // Back view
+    g.clear();
+    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
+    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
+    g.fillStyle(0xecf0f1); g.fillCircle(16, 10, 10);
+    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
+    g.generateTexture('player_back', 32, 32);
+    
+    // Left view
+    g.clear();
+    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
+    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
+    g.fillStyle(0xecf0f1); g.fillCircle(12, 10, 10);
+    g.fillStyle(0x2c3e50); g.fillCircle(12, 10, 8);
+    g.fillStyle(0xe67e22); g.fillCircle(12, 11, 5);
+    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
+    g.generateTexture('player_left', 32, 32);
+    
+    // Right view
+    g.clear();
+    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
+    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
+    g.fillStyle(0xecf0f1); g.fillCircle(20, 10, 10);
+    g.fillStyle(0x2c3e50); g.fillCircle(20, 10, 8);
+    g.fillStyle(0xe67e22); g.fillCircle(20, 11, 5);
+    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
+    g.generateTexture('player_right', 32, 32);
+    
+    g.destroy();
   }
   private createTreeTexture() {
     const g = this.make.graphics({x:0,y:0});

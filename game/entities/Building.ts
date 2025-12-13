@@ -10,6 +10,12 @@ export interface BuildingConfig {
   name: string;
 }
 
+export interface BuildingBenefits {
+  healingRate?: number; // HP per second
+  freezeProtection?: boolean; // Prevents freezing damage
+  description: string;
+}
+
 export const BUILDING_CONFIGS: Record<BuildingType, BuildingConfig> = {
   stick_home: {
     type: 'stick_home',
@@ -24,6 +30,19 @@ export const BUILDING_CONFIGS: Record<BuildingType, BuildingConfig> = {
     cost: { stone: 20 },
     texture: 'stone_home',
     name: 'Stone Home',
+  },
+};
+
+export const BUILDING_BENEFITS: Record<BuildingType, BuildingBenefits> = {
+  stick_home: {
+    healingRate: 2, // 2 HP per second
+    freezeProtection: false,
+    description: 'Heals player when inside',
+  },
+  stone_home: {
+    healingRate: 5, // 5 HP per second (2.5x faster)
+    freezeProtection: true,
+    description: 'Fast healing + freeze protection',
   },
 };
 
@@ -217,6 +236,27 @@ export default class Building extends Phaser.GameObjects.Image {
 
   public getConfig(): BuildingConfig {
     return this.config;
+  }
+
+  public getBenefits(): BuildingBenefits {
+    return BUILDING_BENEFITS[this.buildingType];
+  }
+
+  public isPlayerInside(playerX: number, playerY: number): boolean {
+    // Check if player is within building bounds
+    const radius = 50; // Building interior radius
+    const distance = Math.sqrt(
+      Math.pow(playerX - this.x, 2) + Math.pow(playerY - this.y, 2)
+    );
+    return distance < radius;
+  }
+
+  public getHealingRate(): number {
+    return BUILDING_BENEFITS[this.buildingType].healingRate || 0;
+  }
+
+  public hasFreezeProtection(): boolean {
+    return BUILDING_BENEFITS[this.buildingType].freezeProtection || false;
   }
 
   public destroy(fromScene?: boolean) {

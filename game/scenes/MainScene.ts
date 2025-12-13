@@ -282,10 +282,10 @@ export default class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // Create all textures dynamically (no asset files needed)
-    console.log('Creating player textures...');
+    // Create all textures dynamically (no asset files needed) - v2.0
+    console.log('[v2.0] Creating player textures...');
     this.createPlayerTextures();
-    console.log('Player textures created:', this.textures.exists('player_front'), this.textures.exists('player_back'));
+    console.log('[v2.0] Player textures created:', this.textures.exists('player_front'), this.textures.exists('player_back'));
     
     this.createTreeTexture();
     this.createFurnaceTexture();

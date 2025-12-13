@@ -3,10 +3,34 @@ import GameRunner from './components/GameRunner';
 
 const App: React.FC = () => {
   return (
-    <div className="w-screen h-screen bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute top-4 left-4 z-10 text-white/50 text-sm pointer-events-none select-none">
-        <h1 className="text-xl font-bold text-white">Frostfire Survival</h1>
-        <p>Click to move. Gather wood from Green Trees. Return to the Red Furnace.</p>
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#0f172a',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '1rem',
+        left: '1rem',
+        zIndex: 10,
+        color: 'rgba(255, 255, 255, 0.5)',
+        fontSize: '0.875rem',
+        pointerEvents: 'none',
+        userSelect: 'none'
+      }}>
+        <h1 style={{
+          fontSize: '1.25rem',
+          fontWeight: 'bold',
+          color: 'white',
+          marginBottom: '0.5rem'
+        }}>Frozen Fortune</h1>
+        <p>WASD to move. Space to gather. Click to attack.</p>
       </div>
       <GameRunner />
     </div>

@@ -149,18 +149,58 @@ export default class Building extends Phaser.GameObjects.Image {
     return false; // Building still standing
   }
 
-  public repair(amount: number = 1) {
+  public repair(amount: number = 1): boolean {
+    if (this.health >= this.maxHealth) {
+      return false; // Already at full health
+    }
+    
     this.health = Math.min(this.maxHealth, this.health + amount);
     this.updateHealthBar();
     this.updateDamageOverlay();
     
-    // Visual feedback
+    // Visual feedback - green flash
+    this.setTint(0x00FF00);
+    this.scene.time.delayedCall(200, () => this.clearTint());
+    
+    // Scale pulse
     this.scene.tweens.add({
       targets: this,
-      scale: 1.1,
+      scale: 1.15,
       duration: 200,
       yoyo: true,
+      ease: 'Back.out',
     });
+    
+    // Sparkle particles
+    const particles = this.scene.add.particles(this.x, this.y, 'particle', {
+      speed: { min: 50, max: 100 },
+      scale: { start: 0.5, end: 0 },
+      lifespan: 500,
+      quantity: 10,
+      tint: 0x00FF00,
+      emitting: false,
+    });
+    particles.explode();
+    this.scene.time.delayedCall(600, () => particles.destroy());
+    
+    return true; // Repair successful
+  }
+  
+  public getRepairCost(): { wood?: number; stone?: number } {
+    // Repair costs based on building type
+    if (this.buildingType === 'stick_home') {
+      return { wood: 2 }; // 2 wood per HP
+    } else {
+      return { stone: 3 }; // 3 stone per HP
+    }
+  }
+  
+  public canRepair(): boolean {
+    return this.health < this.maxHealth;
+  }
+  
+  public getRepairAmount(): number {
+    return this.maxHealth - this.health;
   }
 
   public getHealth(): number {

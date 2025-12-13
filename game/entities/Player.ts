@@ -11,9 +11,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   };
   private spaceKey!: Phaser.Input.Keyboard.Key;
   private moveSpeed: number = 200;
+  private dashSpeed: number = 400;
   private isGathering: boolean = false;
   private isAttacking: boolean = false;
+  private isDashing: boolean = false;
+  private dashDuration: number = 200; // ms
+  private dashTimer: number = 0;
   private currentDirection: string = 'down';
+  
+  // Touch control support
+  private touchVelocityX: number = 0;
+  private touchVelocityY: number = 0;
+  private useTouchControls: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player_idle_down');
@@ -118,31 +127,41 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  public update() {
+  public update(delta?: number) {
+    // Update dash timer
+    if (this.isDashing && delta) {
+      this.dashTimer += delta;
+      if (this.dashTimer >= this.dashDuration) {
+        this.isDashing = false;
+        this.dashTimer = 0;
+      }
+    }
+
     if (this.isGathering || this.isAttacking) {
       this.setVelocity(0, 0);
       return;
     }
 
-    this.handleMovement();
-    this.handleGatherInput();
-  }
-
-  private handleMovement() {
     let velocityX = 0;
     let velocityY = 0;
 
-    // Check WASD keys
-    if (this.wasdKeys.A.isDown || this.cursors.left.isDown) {
-      velocityX = -this.moveSpeed;
-    } else if (this.wasdKeys.D.isDown || this.cursors.right.isDown) {
-      velocityX = this.moveSpeed;
-    }
+    // Check if using touch controls
+    if (this.useTouchControls && (this.touchVelocityX !== 0 || this.touchVelocityY !== 0)) {
+      velocityX = this.touchVelocityX;
+      velocityY = this.touchVelocityY;
+    } else {
+      // WASD keys
+      if (this.wasdKeys.W.isDown || this.cursors.up.isDown) {
+        velocityY = -1;
+      } else if (this.wasdKeys.S.isDown || this.cursors.down.isDown) {
+        velocityY = 1;
+      }
 
-    if (this.wasdKeys.W.isDown || this.cursors.up.isDown) {
-      velocityY = -this.moveSpeed;
-    } else if (this.wasdKeys.S.isDown || this.cursors.down.isDown) {
-      velocityY = this.moveSpeed;
+      if (this.wasdKeys.A.isDown || this.cursors.left.isDown) {
+        velocityX = -1;
+      } else if (this.wasdKeys.D.isDown || this.cursors.right.isDown) {
+        velocityX = 1;
+      }
     }
 
     // Normalize diagonal movement
@@ -243,5 +262,66 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   public getCurrentDirection(): string {
     return this.currentDirection;
+  }
+
+  // Touch control methods
+  public setTouchVelocity(x: number, y: number) {
+    this.touchVelocityX = x;
+    this.touchVelocityY = y;
+  }
+
+  public enableTouchControls(enabled: boolean) {
+    this.useTouchControls = enabled;
+  }
+
+  public triggerDash() {
+    if (this.isDashing) return;
+    
+    this.isDashing = true;
+    this.dashTimer = 0;
+    
+    // Get current movement direction or use facing direction
+    let dashX = this.touchVelocityX || 0;
+    let dashY = this.touchVelocityY || 0;
+    
+    // If not moving, dash in facing direction
+    if (dashX === 0 && dashY === 0) {
+      switch (this.currentDirection) {
+        case 'up': dashY = -1; break;
+        case 'down': dashY = 1; break;
+        case 'left': dashX = -1; break;
+        case 'right': dashX = 1; break;
+      }
+    }
+    
+    // Normalize
+    const length = Math.sqrt(dashX * dashX + dashY * dashY);
+    if (length > 0) {
+      dashX /= length;
+      dashY /= length;
+    }
+    
+    // Apply dash velocity
+    const dashDistance = 100;
+    this.scene.tweens.add({
+      targets: this,
+      x: this.x + dashX * dashDistance,
+      y: this.y + dashY * dashDistance,
+      duration: this.dashDuration,
+      ease: 'Power2',
+    });
+    
+    // Visual effect - afterimage
+    const afterimage = this.scene.add.sprite(this.x, this.y, this.texture.key);
+    afterimage.setAlpha(0.5);
+    afterimage.setTint(0x00BFFF);
+    afterimage.setDepth(this.depth - 1);
+    
+    this.scene.tweens.add({
+      targets: afterimage,
+      alpha: 0,
+      duration: this.dashDuration,
+      onComplete: () => afterimage.destroy(),
+    });
   }
 }

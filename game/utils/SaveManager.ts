@@ -2,12 +2,15 @@ export interface GameSaveData {
   // Resources
   woodCount: number;
   meatCount: number;
+  stoneCount: number;
   
   // Game State
   temperature: number;
   furnaceLevel: number;
   hasSpear: boolean;
   hasHut: boolean;
+  hutType: 'stick_home' | 'stone_home' | null;
+  hutHealth: number;
   
   // Player Position
   playerX: number;
@@ -17,6 +20,7 @@ export interface GameSaveData {
   daysSurvived: number;
   totalWoodGathered: number;
   totalMeatCollected: number;
+  totalStoneGathered: number;
   bearsKilled: number;
   
   // Timestamp
@@ -263,15 +267,19 @@ export default class SaveManager {
     return {
       woodCount: 0,
       meatCount: 0,
+      stoneCount: 0,
       temperature: 100,
       furnaceLevel: 1,
       hasSpear: false,
       hasHut: false,
+      hutType: null,
+      hutHealth: 0,
       playerX: 100,
       playerY: 100,
       daysSurvived: 0,
       totalWoodGathered: 0,
       totalMeatCollected: 0,
+      totalStoneGathered: 0,
       bearsKilled: 0,
       lastSaved: Date.now(),
       playTime: 0,

@@ -65,7 +65,8 @@ export default class MapManager {
 
     // Quarry (Deposit Point)
     this.quarry = this.scene.physics.add.staticImage(650, 450, 'quarry');
-    this.quarry.setScale(0.2); // Larger building but proportional
+    this.quarry.setDisplaySize(120, 100); // Force exact building size
+    console.log('Quarry resized to:', this.quarry.displayWidth, this.quarry.displayHeight);
     // Adjust hit box for easier overlap
     this.quarry.body.updateFromGameObject();
 
@@ -124,15 +125,12 @@ export default class MapManager {
       } while (dist < 150 && attempts < 50);
 
       const tree = this.trees.create(x, y, 'tree') as Phaser.Physics.Arcade.Sprite;
-      tree.setScale(0.08); // Match player scale
-      
-      // DEBUG: Show tree dimensions
-      console.log(`Tree Size: ${tree.width} x ${tree.height}`);
-      console.log(`Current Scale: ${tree.scaleX}`);
-      console.log(`Display Size: ${tree.displayWidth} x ${tree.displayHeight}`);
-      
-      tree.setCircle(8, 2, 8);
+      tree.setDisplaySize(40, 60); // Force exact pixel size for 4K assets
+      tree.setBodySize(20, 20); // Physics body to match
       tree.setImmovable(true);
+      
+      // DEBUG: Verify resize
+      console.log('Tree resized to:', tree.displayWidth, tree.displayHeight);
     }
   }
 
@@ -148,8 +146,11 @@ export default class MapManager {
       } while (dist < 150 && attempts < 50);
 
       const stone = this.stonesGroup.create(x, y, 'stone') as Phaser.Physics.Arcade.Sprite;
+      stone.setDisplaySize(24, 24); // Force exact pixel size
       stone.setImmovable(true);
-      stone.setScale(0.05); // Small item to match player
+      
+      // DEBUG: Verify resize
+      console.log('Stone resized to:', stone.displayWidth, stone.displayHeight);
     }
   }
 
@@ -158,12 +159,10 @@ export default class MapManager {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
       const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
-      snowPile.setScale(0.08); // Match player scale
+      snowPile.setDisplaySize(32, 20); // Force exact pixel size for small mounds
       
-      // DEBUG: Show snow pile dimensions
-      console.log(`Snow Pile Size: ${snowPile.width} x ${snowPile.height}`);
-      console.log(`Current Scale: ${snowPile.scaleX}`);
-      console.log(`Display Size: ${snowPile.displayWidth} x ${snowPile.displayHeight}`);
+      // DEBUG: Verify resize
+      console.log('Snow Pile resized to:', snowPile.displayWidth, snowPile.displayHeight);
       
       this.scene.tweens.add({
         targets: snowPile,
@@ -181,7 +180,8 @@ export default class MapManager {
   public buildHut() {
       if (!this.hut) {
         this.hut = this.scene.add.image(300, 350, 'hut');
-        this.hut.setScale(0.15); // Match player scale
+        this.hut.setDisplaySize(100, 100); // Force exact building size
+        console.log('Hut resized to:', this.hut.displayWidth, this.hut.displayHeight);
       }
   }
 
@@ -240,7 +240,8 @@ export default class MapManager {
 
   public placeIgloo(x: number, y: number) {
       const igloo = this.scene.add.image(x, y, 'igloo');
-      igloo.setScale(0.12); // Slightly smaller than player
+      igloo.setDisplaySize(100, 100); // Force exact building size
+      console.log('Igloo resized to:', igloo.displayWidth, igloo.displayHeight);
       igloo.setData('meltTimer', 0);
       igloo.setData('isActive', true);
       this.igloos.push(igloo);

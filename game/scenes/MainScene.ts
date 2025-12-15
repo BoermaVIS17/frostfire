@@ -304,7 +304,7 @@ export default class MainScene extends Phaser.Scene {
     this.load.image('quarry', 'assets/quarry.png');
     this.load.image('stone', 'assets/rock.png');
     this.load.image('snow_pile', 'assets/snow_pile.png');
-    this.load.image('igloo', 'assets/igloo.png.png');
+    this.load.image('igloo', 'assets/igloo.png');
     this.load.image('hut', 'assets/hut_wood.png');
     this.load.image('blizzard_overlay', 'assets/Blizzard.png');
     

@@ -36,7 +36,7 @@ export default class MapManager {
     this.scene.load.image('tree', 'assets/tree1.png');
     this.scene.load.image('quarry', 'assets/quarry.png');
     this.scene.load.image('stone', 'assets/rock.png');
-    this.scene.load.image('igloo', 'assets/igloo.png.png');
+    this.scene.load.image('igloo', 'assets/igloo.png');
     this.scene.load.image('snow_pile', 'assets/snow_pile.png');
     this.scene.load.image('hut', 'assets/hut_wood.png');
     this.scene.load.image('blizzard_overlay', 'assets/Blizzard.png');
@@ -45,7 +45,7 @@ export default class MapManager {
     this.scene.load.image('floor_wood', 'assets/floor_wood.png');
     this.scene.load.image('wall_wood', 'assets/wall_wood.png');
     this.scene.load.image('hut_wood', 'assets/hut_wood.png');
-    this.scene.load.image('trigger_enter', 'assets/Enter Sprite.png');
+    this.scene.load.image('trigger_enter', 'assets/enter_sprite.png');
     
     // Keep generated textures for assets without PNGs
     this.createFurnaceTexture();

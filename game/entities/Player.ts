@@ -32,15 +32,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     
     this.setCollideWorldBounds(true);
-    this.setScale(0.15); // Fixed scale - do not change
+    this.setScale(0.15); // Fixed scale - NEVER change this
     this.setDepth(5);
     this.setVisible(true);
     
-    // Set physics body to feet area only
-    const bodyWidth = this.width * 0.5;
-    const bodyHeight = this.height * 0.2;
-    this.setBodySize(bodyWidth, bodyHeight);
-    this.setOffset((this.width - bodyWidth) / 2, this.height - bodyHeight);
+    // CRITICAL: Set physics body to tiny hitbox at feet only
+    // Use small fixed values for the hitbox
+    this.setBodySize(this.displayWidth * 0.5, this.displayHeight * 0.2);
+    this.setOffset(this.displayWidth * 0.25, this.displayHeight * 0.75);
 
     this.setupInput();
     // Animations are created in MainScene now

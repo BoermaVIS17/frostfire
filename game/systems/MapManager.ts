@@ -65,7 +65,7 @@ export default class MapManager {
 
     // Quarry (Deposit Point)
     this.quarry = this.scene.physics.add.staticImage(650, 450, 'quarry');
-    this.quarry.setScale(0.5); // Larger building size
+    this.quarry.setScale(0.5); // Fixed quarry scale
     // Adjust hit box for easier overlap
     this.quarry.body.updateFromGameObject();
 
@@ -124,7 +124,7 @@ export default class MapManager {
       } while (dist < 150 && attempts < 50);
 
       const tree = this.trees.create(x, y, 'tree') as Phaser.Physics.Arcade.Sprite;
-      tree.setScale(0.2); // RPG-style tree size
+      tree.setScale(0.2); // Fixed tree scale
       tree.setCircle(16, 4, 16);
       tree.setImmovable(true);
     }
@@ -143,7 +143,7 @@ export default class MapManager {
 
       const stone = this.stonesGroup.create(x, y, 'stone') as Phaser.Physics.Arcade.Sprite;
       stone.setImmovable(true);
-      stone.setScale(0.1); // Small item size
+      stone.setScale(0.1); // Fixed stone scale
     }
   }
 
@@ -152,7 +152,7 @@ export default class MapManager {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
       const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
-      snowPile.setScale(0.2); // RPG-style snow pile size
+      snowPile.setScale(0.2); // Fixed snow pile scale
       this.scene.tweens.add({
         targets: snowPile,
         y: snowPile.y - 3,
@@ -228,7 +228,7 @@ export default class MapManager {
 
   public placeIgloo(x: number, y: number) {
       const igloo = this.scene.add.image(x, y, 'igloo');
-      igloo.setScale(0.3); // RPG-style building size
+      igloo.setScale(0.3); // Fixed igloo scale
       igloo.setData('meltTimer', 0);
       igloo.setData('isActive', true);
       this.igloos.push(igloo);

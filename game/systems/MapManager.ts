@@ -65,7 +65,7 @@ export default class MapManager {
 
     // Quarry (Deposit Point)
     this.quarry = this.scene.physics.add.staticImage(650, 450, 'quarry');
-    this.quarry.setScale(0.5); // Fixed quarry scale
+    this.quarry.setScale(0.2); // Larger building but proportional
     // Adjust hit box for easier overlap
     this.quarry.body.updateFromGameObject();
 
@@ -124,8 +124,8 @@ export default class MapManager {
       } while (dist < 150 && attempts < 50);
 
       const tree = this.trees.create(x, y, 'tree') as Phaser.Physics.Arcade.Sprite;
-      tree.setScale(0.2); // Fixed tree scale
-      tree.setCircle(16, 4, 16);
+      tree.setScale(0.08); // Match player scale
+      tree.setCircle(8, 2, 8);
       tree.setImmovable(true);
     }
   }
@@ -143,7 +143,7 @@ export default class MapManager {
 
       const stone = this.stonesGroup.create(x, y, 'stone') as Phaser.Physics.Arcade.Sprite;
       stone.setImmovable(true);
-      stone.setScale(0.1); // Fixed stone scale
+      stone.setScale(0.05); // Small item to match player
     }
   }
 
@@ -152,7 +152,7 @@ export default class MapManager {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
       const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
-      snowPile.setScale(0.2); // Fixed snow pile scale
+      snowPile.setScale(0.08); // Match player scale
       this.scene.tweens.add({
         targets: snowPile,
         y: snowPile.y - 3,
@@ -169,7 +169,7 @@ export default class MapManager {
   public buildHut() {
       if (!this.hut) {
         this.hut = this.scene.add.image(300, 350, 'hut');
-        this.hut.setScale(0.3); // RPG-style building size
+        this.hut.setScale(0.15); // Match player scale
       }
   }
 
@@ -228,7 +228,7 @@ export default class MapManager {
 
   public placeIgloo(x: number, y: number) {
       const igloo = this.scene.add.image(x, y, 'igloo');
-      igloo.setScale(0.3); // Fixed igloo scale
+      igloo.setScale(0.12); // Slightly smaller than player
       igloo.setData('meltTimer', 0);
       igloo.setData('isActive', true);
       this.igloos.push(igloo);

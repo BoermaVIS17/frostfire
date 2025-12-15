@@ -32,7 +32,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     
     this.setCollideWorldBounds(true);
-    this.setScale(0.08); // Scale down large PNG files
+    this.setScale(0.25); // Scale for proper size
     this.setBodySize(32, 32);
     this.setOffset(0, 0);
     this.setDepth(5);

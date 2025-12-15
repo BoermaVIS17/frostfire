@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
-  private scene: Phaser.Scene;
+  public scene: Phaser.Scene;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasdKeys!: {
     W: Phaser.Input.Keyboard.Key;
@@ -25,19 +25,21 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private useTouchControls: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'player_idle_down');
+    super(scene, x, y, 'player_idle');
     this.scene = scene;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
     
     this.setCollideWorldBounds(true);
-    this.setBodySize(24, 24);
-    this.setOffset(4, 8);
+    this.setScale(0.08); // Scale down large PNG files
+    this.setBodySize(32, 32);
+    this.setOffset(0, 0);
     this.setDepth(5);
+    this.setVisible(true);
 
     this.setupInput();
-    this.createAnimations();
+    // Animations are created in MainScene now
   }
 
   private setupInput() {
@@ -53,79 +55,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  private createAnimations() {
-    const anims = this.scene.anims;
-
-    // Idle animations
-    if (!anims.exists('player_idle_down')) {
-      anims.create({
-        key: 'player_idle_down',
-        frames: [{ key: 'player_front' }],
-        frameRate: 1,
-      });
-    }
-
-    if (!anims.exists('player_idle_up')) {
-      anims.create({
-        key: 'player_idle_up',
-        frames: [{ key: 'player_back' }],
-        frameRate: 1,
-      });
-    }
-
-    if (!anims.exists('player_idle_left')) {
-      anims.create({
-        key: 'player_idle_left',
-        frames: [{ key: 'player_left' }],
-        frameRate: 1,
-      });
-    }
-
-    if (!anims.exists('player_idle_right')) {
-      anims.create({
-        key: 'player_idle_right',
-        frames: [{ key: 'player_right' }],
-        frameRate: 1,
-      });
-    }
-
-    // Walk animations (using bob effect in update instead)
-    if (!anims.exists('player_walk_down')) {
-      anims.create({
-        key: 'player_walk_down',
-        frames: [{ key: 'player_front' }],
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-
-    if (!anims.exists('player_walk_up')) {
-      anims.create({
-        key: 'player_walk_up',
-        frames: [{ key: 'player_back' }],
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-
-    if (!anims.exists('player_walk_left')) {
-      anims.create({
-        key: 'player_walk_left',
-        frames: [{ key: 'player_left' }],
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-
-    if (!anims.exists('player_walk_right')) {
-      anims.create({
-        key: 'player_walk_right',
-        frames: [{ key: 'player_right' }],
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-  }
 
   public update(delta?: number) {
     // Update dash timer
@@ -174,8 +103,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Update animations based on movement
     if (velocityX !== 0 || velocityY !== 0) {
-      // Determine primary direction
+      // Determine primary direction and play appropriate animation
       if (Math.abs(velocityX) > Math.abs(velocityY)) {
+        // Horizontal movement dominant
         if (velocityX < 0) {
           this.currentDirection = 'left';
           this.play('player_walk_left', true);
@@ -184,17 +114,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
           this.play('player_walk_right', true);
         }
       } else {
+        // Vertical movement dominant
         if (velocityY < 0) {
-          this.currentDirection = 'up';
-          this.play('player_walk_up', true);
+          // Moving up - check if also moving horizontally
+          if (velocityX < 0) {
+            this.currentDirection = 'up_left';
+            this.play('player_walk_up_left', true);
+          } else if (velocityX > 0) {
+            this.currentDirection = 'up_right';
+            this.play('player_walk_up_right', true);
+          } else {
+            this.currentDirection = 'up';
+            this.play('player_walk_up_right', true); // Default to up_right for pure up movement
+          }
         } else {
+          // Moving down
           this.currentDirection = 'down';
-          this.play('player_walk_down', true);
+          this.play('player_walk_right', true); // Use right sprite for down movement
         }
       }
     } else {
       // Idle animation
-      this.play(`player_idle_${this.currentDirection}`, true);
+      this.play('player_idle', true);
     }
   }
 

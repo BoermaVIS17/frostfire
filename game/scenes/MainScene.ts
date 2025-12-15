@@ -298,31 +298,31 @@ export default class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // Create all textures dynamically (no asset files needed) - v2.0
-    console.log('[v2.0] Creating player textures...');
-    this.createPlayerTextures();
-    console.log('[v2.0] Player textures created:', this.textures.exists('player_front'), this.textures.exists('player_back'));
+    // Load all real PNG assets
+    // Map Assets
+    this.load.image('tree', 'assets/tree1.png');
+    this.load.image('quarry', 'assets/quarry.png');
+    this.load.image('stone', 'assets/stone.png');
+    this.load.image('snow_pile', 'assets/snow_pile.png');
+    this.load.image('igloo', 'assets/igloo.png');
+    this.load.image('hut', 'assets/hut_wood.png');
+    this.load.image('blizzard_overlay', 'assets/blizzard_overlay.jpg');
     
-    this.createTreeTexture();
+    // Player Assets
+    this.load.image('player_idle', 'assets/player_idle.png');
+    this.load.image('player_run_right', 'assets/player_run_right.png');
+    this.load.image('player_run_left', 'assets/player_run_left.png');
+    this.load.image('player_run_up', 'assets/player_run_up_right.png');
+    this.load.image('player_run_up_right', 'assets/player_run_up_right.png');
+    this.load.image('player_run_up_left', 'assets/player_run_up_left.png');
+    
+    // Other Assets (keep these for now - will use generated textures if no PNG available)
     this.createFurnaceTexture();
     this.createBearTexture();
     this.createSpearTexture();
     this.createMeatTexture();
-    this.createHutTexture();
     this.createWorkerTexture();
-
-    // Create Snow Particle Texture
-    const g = this.make.graphics({x:0,y:0});
-    g.fillStyle(0xFFFFFF); g.fillCircle(2,2,2);
-    g.generateTexture('snow_particle', 4, 4);
-    g.destroy();
-
-    // Load new assets for Shelter & Blizzard update
-    this.load.image('quarry', 'public/assets/quarry.png');
-    this.load.image('stone', 'public/assets/stone.png');
-    this.load.image('igloo', 'public/assets/igloo.png');
-    this.load.image('snow_pile', 'public/assets/snow_pile.png');
-    this.load.image('blizzard_overlay', 'public/assets/blizzard_overlay.jpg');
+    this.createSnowParticleTexture();
   }
 
   create() {
@@ -362,6 +362,9 @@ export default class MainScene extends Phaser.Scene {
 
     // 2. Player Setup
     this.player = new Player(this, 100, 100);
+    
+    // Create player animations
+    this.createPlayerAnimations();
 
     // Spear (Visual, attached to player logic in update)
     this.spear = this.add.sprite(100, 100, 'spear');
@@ -1288,58 +1291,14 @@ export default class MainScene extends Phaser.Scene {
     if (this.autoSaveTimer) this.autoSaveTimer.remove();
   }
 
-  // --- Texture Generators ---
-  private createPlayerTextures() {
-    // Create all 4 directional player sprites
+  // --- Texture Generators (Only for assets without PNG files) ---
+  private createSnowParticleTexture() {
     const g = this.make.graphics({x:0,y:0});
-    
-    // Front view
-    g.clear();
-    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
-    g.fillStyle(0xecf0f1); g.fillRect(14, 8, 4, 20); g.fillRect(4, 24, 24, 4);
-    g.fillStyle(0xecf0f1); g.fillCircle(16, 10, 10);
-    g.fillStyle(0x2c3e50); g.fillCircle(16, 10, 8);
-    g.fillStyle(0xe67e22); g.fillCircle(16, 11, 5);
-    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
-    g.generateTexture('player_front', 32, 32);
-    
-    // Back view
-    g.clear();
-    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
-    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
-    g.fillStyle(0xecf0f1); g.fillCircle(16, 10, 10);
-    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
-    g.generateTexture('player_back', 32, 32);
-    
-    // Left view
-    g.clear();
-    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
-    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
-    g.fillStyle(0xecf0f1); g.fillCircle(12, 10, 10);
-    g.fillStyle(0x2c3e50); g.fillCircle(12, 10, 8);
-    g.fillStyle(0xe67e22); g.fillCircle(12, 11, 5);
-    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
-    g.generateTexture('player_left', 32, 32);
-    
-    // Right view
-    g.clear();
-    g.fillStyle(0x3498db); g.fillRoundedRect(4, 8, 24, 20, 8);
-    g.fillStyle(0xecf0f1); g.fillRect(4, 24, 24, 4);
-    g.fillStyle(0xecf0f1); g.fillCircle(20, 10, 10);
-    g.fillStyle(0x2c3e50); g.fillCircle(20, 10, 8);
-    g.fillStyle(0xe67e22); g.fillCircle(20, 11, 5);
-    g.fillStyle(0x5d4037); g.fillEllipse(10, 30, 8, 6); g.fillEllipse(22, 30, 8, 6);
-    g.generateTexture('player_right', 32, 32);
-    
+    g.fillStyle(0xFFFFFF); g.fillCircle(2,2,2);
+    g.generateTexture('snow_particle', 4, 4);
     g.destroy();
   }
-  private createTreeTexture() {
-    const g = this.make.graphics({x:0,y:0});
-    g.fillStyle(0x5D4037); g.fillRect(16,38,8,10);
-    g.fillStyle(0x2E7D32); g.fillTriangle(20,10,2,40,38,40); g.fillTriangle(20,0,6,28,34,28); g.fillTriangle(20,-10,10,16,30,16);
-    g.fillStyle(0xE0F7FA); g.beginPath(); g.moveTo(20,-10); g.lineTo(15,0); g.lineTo(25,0); g.closePath(); g.fill();
-    g.generateTexture('tree', 40, 48);
-  }
+  
   private createFurnaceTexture() {
     const g = this.make.graphics({x:0,y:0});
     g.fillStyle(0x616161); g.fillCircle(32,32,30); g.fillStyle(0x212121); g.fillCircle(32,32,24);
@@ -1347,6 +1306,7 @@ export default class MainScene extends Phaser.Scene {
     g.fillStyle(0xFFEB3B); g.fillTriangle(32,20,28,36,36,36);
     g.generateTexture('furnace', 64, 64);
   }
+  
   private createBearTexture() {
     const g = this.make.graphics({x:0,y:0});
     g.fillStyle(0xF5F5F5); g.fillCircle(20,20,18); g.fillCircle(10,8,6); g.fillCircle(30,8,6);
@@ -1354,27 +1314,23 @@ export default class MainScene extends Phaser.Scene {
     g.fillCircle(14,18,2); g.fillCircle(26,18,2);
     g.generateTexture('bear', 40, 40);
   }
+  
   private createSpearTexture() {
     const g = this.make.graphics({x:0,y:0});
-    g.fillStyle(0x8D6E63); g.fillRect(0,3,32,2); // Shaft
-    g.fillStyle(0xBDC3C7); g.fillTriangle(32,4, 28,1, 28,7); // Tip
+    g.fillStyle(0x8D6E63); g.fillRect(0,3,32,2);
+    g.fillStyle(0xBDC3C7); g.fillTriangle(32,4, 28,1, 28,7);
     g.generateTexture('spear', 34, 8);
   }
+  
   private createMeatTexture() {
     const g = this.make.graphics({x:0,y:0});
     g.fillStyle(0xC0392B); g.fillCircle(8,8,8); g.fillStyle(0xE74C3C); g.fillCircle(6,6,3);
     g.generateTexture('meat', 16, 16);
   }
-  private createHutTexture() {
-    const g = this.make.graphics({x:0,y:0});
-    g.fillStyle(0x795548); g.fillRect(4,20,32,20); // Base
-    g.fillStyle(0x8D6E63); g.fillTriangle(20,0, 0,20, 40,20); // Roof
-    g.fillStyle(0x3E2723); g.fillRect(16,30,8,10); // Door
-    g.generateTexture('hut', 40, 40);
-  }
+  
   private createWorkerTexture() {
     const g = this.make.graphics({x:0,y:0});
-    g.fillStyle(0xF1C40F); g.fillRect(0,0,20,20); // Yellow body
+    g.fillStyle(0xF1C40F); g.fillRect(0,0,20,20);
     g.lineStyle(2, 0x000000); g.strokeRect(0,0,20,20);
     g.generateTexture('worker', 20, 20);
   }
@@ -1671,6 +1627,51 @@ export default class MainScene extends Phaser.Scene {
       // Bonus temperature
       this.temperature = Math.min(this.maxTemperature, this.temperature + 10);
     }
+  }
+
+  private createPlayerAnimations() {
+    // Create animations from the loaded sprite images
+    // Since we have single frame images, we'll use them as single-frame animations
+    
+    // Idle animation
+    this.anims.create({
+      key: 'player_idle',
+      frames: [{ key: 'player_idle', frame: 0 }],
+      frameRate: 1,
+      repeat: -1
+    });
+    
+    // Walk right animation
+    this.anims.create({
+      key: 'player_walk_right',
+      frames: [{ key: 'player_run_right', frame: 0 }],
+      frameRate: 8,
+      repeat: -1
+    });
+    
+    // Walk left animation
+    this.anims.create({
+      key: 'player_walk_left',
+      frames: [{ key: 'player_run_left', frame: 0 }],
+      frameRate: 8,
+      repeat: -1
+    });
+    
+    // Walk up-right animation
+    this.anims.create({
+      key: 'player_walk_up_right',
+      frames: [{ key: 'player_run_up_right', frame: 0 }],
+      frameRate: 8,
+      repeat: -1
+    });
+    
+    // Walk up-left animation
+    this.anims.create({
+      key: 'player_walk_up_left',
+      frames: [{ key: 'player_run_up_left', frame: 0 }],
+      frameRate: 8,
+      repeat: -1
+    });
   }
 
   private isPlayerInShelter(): boolean {

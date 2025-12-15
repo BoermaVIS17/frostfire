@@ -32,23 +32,24 @@ export default class MapManager {
   }
 
   preload() {
-    this.createTreeTexture();
-    this.createFurnaceTexture();
-    this.createHutTexture();
-    this.createSnowParticleTexture();
-    
-    // Load asset files
-    this.scene.load.image('quarry', 'public/assets/quarry.png');
-    this.scene.load.image('stone', 'public/assets/stone.png');
-    this.scene.load.image('igloo', 'public/assets/igloo.png');
-    this.scene.load.image('snow_pile', 'public/assets/snow_pile.png');
-    this.scene.load.image('blizzard_overlay', 'public/assets/blizzard_overlay.jpg');
+    // Load all real PNG assets
+    this.scene.load.image('tree', 'assets/tree1.png');
+    this.scene.load.image('quarry', 'assets/quarry.png');
+    this.scene.load.image('stone', 'assets/stone.png');
+    this.scene.load.image('igloo', 'assets/igloo.png');
+    this.scene.load.image('snow_pile', 'assets/snow_pile.png');
+    this.scene.load.image('hut', 'assets/hut_wood.png');
+    this.scene.load.image('blizzard_overlay', 'assets/blizzard_overlay.jpg');
     
     // Load hut interior assets
-    this.scene.load.image('floor_wood', 'public/assets/floor_wood.png');
-    this.scene.load.image('wall_wood', 'public/assets/wall_wood.png');
-    this.scene.load.image('hut_wood', 'public/assets/hut_wood.png');
-    this.scene.load.image('trigger_enter', 'public/assets/trigger_enter.png');
+    this.scene.load.image('floor_wood', 'assets/floor_wood.png');
+    this.scene.load.image('wall_wood', 'assets/wall_wood.png');
+    this.scene.load.image('hut_wood', 'assets/hut_wood.png');
+    this.scene.load.image('trigger_enter', 'assets/trigger_enter.png');
+    
+    // Keep generated textures for assets without PNGs
+    this.createFurnaceTexture();
+    this.createSnowParticleTexture();
   }
 
   create() {
@@ -64,7 +65,7 @@ export default class MapManager {
 
     // Quarry (Deposit Point)
     this.quarry = this.scene.physics.add.staticImage(650, 450, 'quarry');
-    this.quarry.setScale(0.8);
+    this.quarry.setScale(0.1); // Scale down large PNG files
     // Adjust hit box for easier overlap
     this.quarry.body.updateFromGameObject();
 
@@ -123,9 +124,9 @@ export default class MapManager {
       } while (dist < 150 && attempts < 50);
 
       const tree = this.trees.create(x, y, 'tree') as Phaser.Physics.Arcade.Sprite;
+      tree.setScale(0.08); // Scale down large PNG files
+      tree.setCircle(16, 4, 16);
       tree.setImmovable(true);
-      tree.setBodySize(20, 20);
-      tree.setOffset(10, 28);
     }
   }
 
@@ -142,7 +143,7 @@ export default class MapManager {
 
       const stone = this.stonesGroup.create(x, y, 'stone') as Phaser.Physics.Arcade.Sprite;
       stone.setImmovable(true);
-      stone.setScale(0.8);
+      stone.setScale(0.06); // Scale down large PNG files
     }
   }
 
@@ -151,7 +152,7 @@ export default class MapManager {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
       const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
-      snowPile.setScale(0.6);
+      snowPile.setScale(0.05); // Scale down large PNG files
       this.scene.tweens.add({
         targets: snowPile,
         y: snowPile.y - 3,
@@ -168,6 +169,7 @@ export default class MapManager {
   public buildHut() {
       if (!this.hut) {
         this.hut = this.scene.add.image(300, 350, 'hut');
+        this.hut.setScale(0.15); // Scale down large PNG files
       }
   }
 
@@ -226,7 +228,7 @@ export default class MapManager {
 
   public placeIgloo(x: number, y: number) {
       const igloo = this.scene.add.image(x, y, 'igloo');
-      igloo.setScale(0.8);
+      igloo.setScale(0.08); // Scale down large PNG files
       igloo.setData('meltTimer', 0);
       igloo.setData('isActive', true);
       this.igloos.push(igloo);
@@ -288,16 +290,8 @@ export default class MapManager {
     });
   }
 
-  // --- Texture Generation ---
+  // --- Texture Generation (Only for assets without PNG files) ---
 
-  private createTreeTexture() {
-    const g = this.scene.make.graphics({x:0,y:0});
-    g.fillStyle(0x5D4037); g.fillRect(16,38,8,10);
-    g.fillStyle(0x2E7D32); g.fillTriangle(20,10,2,40,38,40); g.fillTriangle(20,0,6,28,34,28); g.fillTriangle(20,-10,10,16,30,16);
-    g.fillStyle(0xE0F7FA); g.beginPath(); g.moveTo(20,-10); g.lineTo(15,0); g.lineTo(25,0); g.closePath(); g.fill();
-    g.generateTexture('tree', 40, 48);
-    g.destroy();
-  }
   private createFurnaceTexture() {
     const g = this.scene.make.graphics({x:0,y:0});
     g.fillStyle(0x616161); g.fillCircle(32,32,30); g.fillStyle(0x212121); g.fillCircle(32,32,24);
@@ -306,14 +300,7 @@ export default class MapManager {
     g.generateTexture('furnace', 64, 64);
     g.destroy();
   }
-  private createHutTexture() {
-    const g = this.scene.make.graphics({x:0,y:0});
-    g.fillStyle(0x795548); g.fillRect(4,20,32,20);
-    g.fillStyle(0x8D6E63); g.fillTriangle(20,0, 0,20, 40,20);
-    g.fillStyle(0x3E2723); g.fillRect(16,30,8,10);
-    g.generateTexture('hut', 40, 40);
-    g.destroy();
-  }
+  
   private createSnowParticleTexture() {
     const g = this.scene.make.graphics({x:0,y:0});
     g.fillStyle(0xFFFFFF); g.fillCircle(2,2,2);

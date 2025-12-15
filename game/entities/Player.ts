@@ -32,11 +32,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     
     this.setCollideWorldBounds(true);
-    this.setScale(0.25); // Scale for proper size
-    this.setBodySize(32, 32);
-    this.setOffset(0, 0);
+    this.setScale(0.15); // Fixed scale - do not change
     this.setDepth(5);
     this.setVisible(true);
+    
+    // Set physics body to feet area only
+    const bodyWidth = this.width * 0.5;
+    const bodyHeight = this.height * 0.2;
+    this.setBodySize(bodyWidth, bodyHeight);
+    this.setOffset((this.width - bodyWidth) / 2, this.height - bodyHeight);
 
     this.setupInput();
     // Animations are created in MainScene now
@@ -101,41 +105,31 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocity(velocityX, velocityY);
 
-    // Update animations based on movement
+    // Update textures based on movement (no animations, just texture swapping)
     if (velocityX !== 0 || velocityY !== 0) {
-      // Determine primary direction and play appropriate animation
+      // Determine primary direction and set texture
       if (Math.abs(velocityX) > Math.abs(velocityY)) {
         // Horizontal movement dominant
         if (velocityX < 0) {
           this.currentDirection = 'left';
-          this.play('player_walk_left', true);
+          this.setTexture('player_run_left');
         } else {
           this.currentDirection = 'right';
-          this.play('player_walk_right', true);
+          this.setTexture('player_run_right');
         }
       } else {
         // Vertical movement dominant
         if (velocityY < 0) {
-          // Moving up - check if also moving horizontally
-          if (velocityX < 0) {
-            this.currentDirection = 'up_left';
-            this.play('player_walk_up_left', true);
-          } else if (velocityX > 0) {
-            this.currentDirection = 'up_right';
-            this.play('player_walk_up_right', true);
-          } else {
-            this.currentDirection = 'up';
-            this.play('player_walk_up_right', true); // Default to up_right for pure up movement
-          }
+          this.currentDirection = 'up';
+          this.setTexture('player_run_up');
         } else {
-          // Moving down
           this.currentDirection = 'down';
-          this.play('player_walk_right', true); // Use right sprite for down movement
+          this.setTexture('player_run_right'); // Use right sprite for down movement
         }
       }
     } else {
-      // Idle animation
-      this.play('player_idle', true);
+      // Idle
+      this.setTexture('player_idle');
     }
   }
 

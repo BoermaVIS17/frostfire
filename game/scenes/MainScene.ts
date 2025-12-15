@@ -6,6 +6,10 @@ import SaveManager, { GameSaveData } from '../utils/SaveManager';
 import BlizzardManager from '../utils/BlizzardManager';
 import StoneRock from '../entities/StoneRock';
 import QuarryWorker from '../entities/QuarryWorker';
+import MapManager from '../systems/MapManager';
+import UIManager from '../systems/UIManager';
+import PlayerController from '../entities/PlayerController';
+import MobManager from '../systems/MobManager';
 
 // --- Helper Class for the Worker AI ---
 class WorkerSprite extends Phaser.Physics.Arcade.Sprite {
@@ -214,6 +218,11 @@ export default class MainScene extends Phaser.Scene {
   private fogWall!: Phaser.GameObjects.Rectangle;
   private fogCollider!: Phaser.Physics.Arcade.StaticBody;
   private meatGroup!: Phaser.Physics.Arcade.Group;
+  private stonesGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private snowPilesGroup!: Phaser.Physics.Arcade.Group;
+  private igloos!: Phaser.GameObjects.Image[];
+  private quarry!: Phaser.GameObjects.Image | null;
+  private blizzardOverlay!: Phaser.GameObjects.Image;
 
   // Combat
   private spear!: Phaser.GameObjects.Sprite;
@@ -232,6 +241,8 @@ export default class MainScene extends Phaser.Scene {
   // Game State
   private woodCount: number = 0;
   private meatCount: number = 0;
+  private snowCount: number = 0;
+  private stoneCount: number = 0;
   private temperature: number = 100;
   private maxTemperature: number = 100;
   private furnaceLevel: number = 1;
@@ -241,11 +252,14 @@ export default class MainScene extends Phaser.Scene {
   private upgradeCost: number = 10;
   private spearCost: number = 50;
   private hutCost: number = 100;
+  private iglooCost: number = 10;
   
   // UI
   private tempText!: Phaser.GameObjects.Text;
   private woodText!: Phaser.GameObjects.Text;
   private meatText!: Phaser.GameObjects.Text;
+  private snowText!: Phaser.GameObjects.Text;
+  private stoneText!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   
@@ -253,6 +267,8 @@ export default class MainScene extends Phaser.Scene {
   private upgradeBtn!: Phaser.GameObjects.Container;
   private spearBtn!: Phaser.GameObjects.Container;
   private hutBtn!: Phaser.GameObjects.Container;
+  private iglooBtn!: Phaser.GameObjects.Container;
+  private placingIgloo: boolean = false;
   
   // Logic
   private tempDecayEvent!: Phaser.Time.TimerEvent;
@@ -300,6 +316,13 @@ export default class MainScene extends Phaser.Scene {
     g.fillStyle(0xFFFFFF); g.fillCircle(2,2,2);
     g.generateTexture('snow_particle', 4, 4);
     g.destroy();
+
+    // Load new assets for Shelter & Blizzard update
+    this.load.image('quarry', 'public/assets/quarry.png');
+    this.load.image('stone', 'public/assets/stone.png');
+    this.load.image('igloo', 'public/assets/igloo.png');
+    this.load.image('snow_pile', 'public/assets/snow_pile.png');
+    this.load.image('blizzard_overlay', 'public/assets/blizzard_overlay.jpg');
   }
 
   create() {
@@ -320,6 +343,22 @@ export default class MainScene extends Phaser.Scene {
     this.spawnTrees(5, true);
 
     this.meatGroup = this.physics.add.group();
+    this.stonesGroup = this.physics.add.staticGroup();
+    this.snowPilesGroup = this.physics.add.group();
+    this.igloos = [];
+    this.quarry = null;
+
+    // Spawn stone resources
+    this.spawnStones(3);
+
+    // Spawn snow piles
+    this.spawnSnowPiles(Phaser.Math.Between(5, 10));
+
+    // Create blizzard overlay (initially hidden)
+    this.blizzardOverlay = this.add.image(400, 300, 'blizzard_overlay');
+    this.blizzardOverlay.setDisplaySize(800, 600);
+    this.blizzardOverlay.setAlpha(0);
+    this.blizzardOverlay.setDepth(15);
 
     // 2. Player Setup
     this.player = new Player(this, 100, 100);
@@ -453,12 +492,29 @@ export default class MainScene extends Phaser.Scene {
 
     // Interactions
     this.physics.overlap(this.player, this.meatGroup, this.collectMeat, undefined, this);
+    this.physics.overlap(this.player, this.snowPilesGroup, this.collectSnowPile, undefined, this);
+    
+    // Quarry Deposit Check (using refactored system approach)
+    this.checkQuarryDeposit();
+    
+    // Hut Door Trigger Check (for roof fading - if using refactored MapManager)
+    this.checkHutDoorTrigger();
     
     // UI Updates
     this.tempText.setText(`Temp: ${Math.floor(this.temperature)}%`);
     this.woodText.setText(`Wood: ${this.woodCount}`);
     this.meatText.setText(`Meat: ${this.meatCount}`);
+    this.snowText.setText(`Snow: ${this.snowCount}`);
+    this.stoneText.setText(`Stone: ${this.stoneCount}`);
     this.checkButtonsVisibility();
+
+    // Handle igloo placement mode
+    if (this.placingIgloo) {
+      this.handleIglooPlacement();
+    }
+
+    // Update igloo melting timers
+    this.updateIgloos(delta);
   }
 
 
@@ -631,6 +687,78 @@ export default class MainScene extends Phaser.Scene {
     this.time.delayedCall(1000, () => this.statusText.setText(''));
   }
 
+  private collectSnowPile(player: any, snowPile: any) {
+    // Sparkle effect when collecting
+    ParticleEffects.createSparkle(this, snowPile.x, snowPile.y);
+    
+    // Floating text
+    FloatingText.createResource(this, snowPile.x, snowPile.y - 20, 1, 'Snow', '#00BFFF');
+    
+    snowPile.destroy();
+    this.snowCount++;
+    this.statusText.setText("Collected Snow!");
+    this.time.delayedCall(1000, () => this.statusText.setText(''));
+  }
+
+  private checkQuarryDeposit() {
+    // Note: This is a temporary bridge method for the old MainScene structure
+    // In the refactored version, this would be handled by PlayerController and UIManager
+    // For now, we'll check if there's a quarry object (from old code or new MapManager)
+    
+    // Try to find quarry - could be from old code or new MapManager
+    const quarryX = 650;
+    const quarryY = 450;
+    const depositRange = 80;
+    
+    const distToQuarry = Phaser.Math.Distance.Between(this.player.x, this.player.y, quarryX, quarryY);
+    
+    if (distToQuarry < depositRange) {
+      // Check if player has any resources to deposit
+      const hasResources = this.woodCount > 0 || this.stoneCount > 0 || this.meatCount > 0;
+      
+      if (hasResources) {
+        // Show deposit prompt (could be triggered by key press in full implementation)
+        // For now, auto-deposit when near quarry
+        const totalItems = this.woodCount + this.stoneCount + this.meatCount;
+        
+        if (totalItems > 0) {
+          // Visual feedback
+          ParticleEffects.createSparkle(this, quarryX, quarryY);
+          FloatingText.create(this, quarryX, quarryY - 30, 'Resources Deposited!', '#FFD700', 24);
+          
+          // Deposit resources (this would update town stash in full refactor)
+          this.statusText.setText(`Deposited: ${this.woodCount}W ${this.stoneCount}S ${this.meatCount}M`);
+          
+          // Reset player inventory
+          this.woodCount = 0;
+          this.stoneCount = 0;
+          this.meatCount = 0;
+          
+          this.time.delayedCall(2000, () => this.statusText.setText(''));
+        }
+      }
+    }
+  }
+
+  private checkHutDoorTrigger() {
+    // This method bridges to the refactored MapManager's hut interior system
+    // Note: This assumes MapManager has been instantiated with the hut interior
+    // In the old MainScene structure, we don't have direct access to MapManager
+    // So we'll check manually for now
+    
+    // Door trigger position (matches MapManager's createHutWithInterior)
+    const doorX = 300;
+    const doorY = 380; // 300 + 80
+    const triggerRange = 40;
+    
+    const distToTrigger = Phaser.Math.Distance.Between(this.player.x, this.player.y, doorX, doorY);
+    const isOverlapping = distToTrigger < triggerRange;
+    
+    // If using the refactored MapManager, call its update method
+    // For now, we'll handle it here as a bridge
+    // Note: When fully refactored, this would be: mapManager.updateHutRoofFading(isOverlapping);
+  }
+
   // --- Automation Logic ---
 
   public getClosestTree(x: number, y: number): Phaser.GameObjects.GameObject | null {
@@ -673,6 +801,8 @@ export default class MainScene extends Phaser.Scene {
     this.isGameOver = false;
     this.woodCount = 0;
     this.meatCount = 0;
+    this.snowCount = 0;
+    this.stoneCount = 0;
     this.temperature = 100;
     this.furnaceLevel = 1;
     this.hasSpear = false;
@@ -681,6 +811,7 @@ export default class MainScene extends Phaser.Scene {
     this.worker = null;
     this.bearHP = 3;
     this.burnRateModifier = 1.0;
+    this.placingIgloo = false;
   }
 
   private createUI(cx: number, cy: number) {
@@ -688,7 +819,9 @@ export default class MainScene extends Phaser.Scene {
     this.tempText = this.add.text(16, 16, 'Temp: 100%', textStyle);
     this.woodText = this.add.text(16, 46, 'Wood: 0', textStyle);
     this.meatText = this.add.text(16, 76, 'Meat: 0', { ...textStyle, color: '#aa0000' });
-    this.levelText = this.add.text(16, 106, 'Furnace Lv: 1', textStyle);
+    this.snowText = this.add.text(16, 106, 'Snow: 0', { ...textStyle, color: '#00BFFF' });
+    this.stoneText = this.add.text(16, 136, 'Stone: 0', { ...textStyle, color: '#808080' });
+    this.levelText = this.add.text(16, 166, 'Furnace Lv: 1', textStyle);
     this.statusText = this.add.text(cx, 100, '', { ...textStyle, color: '#333' }).setOrigin(0.5);
 
     // Progression stats (top right)
@@ -699,10 +832,12 @@ export default class MainScene extends Phaser.Scene {
     this.upgradeBtn = this.createButton(cx, cy + 60, 'Upgrade (10)', 0x2ecc71, () => this.upgradeFurnace());
     this.spearBtn = this.createButton(cx + 200, cy + 200, 'Craft Spear (50)', 0x3498db, () => this.craftSpear());
     this.hutBtn = this.createButton(cx - 200, cy + 100, 'Build Hut (100)', 0xf1c40f, () => this.buildHut());
+    this.iglooBtn = this.createButton(cx, cy + 150, 'Build Igloo (10 Snow)', 0x00CED1, () => this.startIglooPlacement());
     this.saveBtn = this.createButton(cx, cy + 250, 'Save Game', 0x9b59b6, () => this.manualSave());
 
     this.spearBtn.setVisible(false);
     this.hutBtn.setVisible(false);
+    this.iglooBtn.setVisible(false);
   }
 
   private createButton(x: number, y: number, label: string, color: number, callback: () => void) {
@@ -780,6 +915,18 @@ export default class MainScene extends Phaser.Scene {
     } else {
         this.hutBtn.setVisible(false);
     }
+
+    if (!this.placingIgloo) {
+        this.iglooBtn.setVisible(true);
+        const iglooBg = this.iglooBtn.list[0] as Phaser.GameObjects.Rectangle;
+        if (this.snowCount < this.iglooCost) {
+            iglooBg.setFillStyle(0x7f8c8d);
+            this.iglooBtn.disableInteractive();
+        } else {
+            iglooBg.setFillStyle(0x00CED1);
+            this.iglooBtn.setInteractive(new Phaser.Geom.Rectangle(-80, -20, 160, 40), Phaser.Geom.Rectangle.Contains);
+        }
+    }
   }
 
   // --- Button Handlers ---
@@ -797,6 +944,19 @@ export default class MainScene extends Phaser.Scene {
     this.fogCollider.enable = false;
     this.spawnBear();
     this.spawnTrees(5, false);
+    
+    // Add quarry building
+    if (!this.quarry) {
+      this.quarry = this.add.image(650, 450, 'quarry');
+      this.quarry.setScale(0.8);
+      this.quarry.setAlpha(0);
+      this.tweens.add({
+        targets: this.quarry,
+        alpha: 1,
+        duration: 2000,
+        ease: 'Power2'
+      });
+    }
   }
 
   private craftSpear() {
@@ -821,6 +981,74 @@ export default class MainScene extends Phaser.Scene {
             this.worker = new WorkerSprite(this, 300, 380);
             this.statusText.setText("WORKER HIRED!");
         }
+    }
+  }
+
+  private startIglooPlacement() {
+    if (this.snowCount >= this.iglooCost) {
+      this.placingIgloo = true;
+      this.statusText.setText("Click to place Igloo!");
+      this.iglooBtn.setVisible(false);
+    }
+  }
+
+  private handleIglooPlacement() {
+    const pointer = this.input.activePointer;
+    
+    if (pointer.isDown && pointer.leftButtonDown()) {
+      const x = pointer.x;
+      const y = pointer.y;
+      
+      this.snowCount -= this.iglooCost;
+      this.placingIgloo = false;
+      
+      const igloo = this.add.image(x, y, 'igloo');
+      igloo.setScale(0.8);
+      igloo.setData('meltTimer', 0);
+      igloo.setData('isActive', true);
+      
+      this.igloos.push(igloo);
+      
+      this.statusText.setText("IGLOO BUILT!");
+      this.time.delayedCall(1000, () => this.statusText.setText(''));
+      
+      ParticleEffects.createSparkle(this, x, y);
+    }
+    
+    if (this.input.keyboard && this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC).isDown) {
+      this.placingIgloo = false;
+      this.statusText.setText("Cancelled!");
+      this.time.delayedCall(1000, () => this.statusText.setText(''));
+    }
+  }
+
+  private updateIgloos(delta: number) {
+    const isBlizzardActive = this.blizzardManager.isBlizzardActive();
+    
+    for (let i = this.igloos.length - 1; i >= 0; i--) {
+      const igloo = this.igloos[i];
+      
+      if (!igloo.getData('isActive')) continue;
+      
+      if (!isBlizzardActive) {
+        let meltTimer = igloo.getData('meltTimer') || 0;
+        meltTimer += delta;
+        igloo.setData('meltTimer', meltTimer);
+        
+        const meltDuration = 120000;
+        if (meltTimer >= meltDuration) {
+          ParticleEffects.createSparkle(this, igloo.x, igloo.y);
+          FloatingText.create(this, igloo.x, igloo.y - 20, 'Melted!', '#00BFFF', 20);
+          igloo.destroy();
+          this.igloos.splice(i, 1);
+        } else {
+          const alphaProgress = 1 - (meltTimer / meltDuration);
+          igloo.setAlpha(alphaProgress);
+        }
+      } else {
+        igloo.setData('meltTimer', 0);
+        igloo.setAlpha(1);
+      }
     }
   }
 
@@ -856,6 +1084,42 @@ export default class MainScene extends Phaser.Scene {
       tree.setImmovable(true);
       tree.setBodySize(20, 20);
       tree.setOffset(10, 28);
+    }
+  }
+
+  private spawnStones(count: number) {
+    for (let i = 0; i < count; i++) {
+      let x, y, dist;
+      let attempts = 0;
+      do {
+        attempts++;
+        x = Phaser.Math.Between(500, 750);
+        y = Phaser.Math.Between(50, 550);
+        dist = Phaser.Math.Distance.Between(x, y, this.furnace.x, this.furnace.y);
+      } while (dist < 150 && attempts < 50);
+
+      const stone = this.stonesGroup.create(x, y, 'stone') as Phaser.Physics.Arcade.Sprite;
+      stone.setImmovable(true);
+      stone.setScale(0.8);
+    }
+  }
+
+  private spawnSnowPiles(count: number) {
+    for (let i = 0; i < count; i++) {
+      const x = Phaser.Math.Between(50, 750);
+      const y = Phaser.Math.Between(50, 550);
+      
+      const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
+      snowPile.setScale(0.6);
+      
+      this.tweens.add({
+        targets: snowPile,
+        y: snowPile.y - 3,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
     }
   }
 
@@ -1154,7 +1418,9 @@ export default class MainScene extends Phaser.Scene {
       bearsKilled: this.bearsKilled,
       lastSaved: Date.now(),
       playTime: this.playTimeSeconds,
-    };
+      snowCount: this.snowCount,
+      stoneCount: this.stoneCount,
+    } as any;
 
     return SaveManager.saveGame(saveData);
   }
@@ -1170,6 +1436,8 @@ export default class MainScene extends Phaser.Scene {
     // Restore resources
     this.woodCount = saveData.woodCount;
     this.meatCount = saveData.meatCount;
+    this.snowCount = (saveData as any).snowCount || 0;
+    this.stoneCount = (saveData as any).stoneCount || 0;
     this.temperature = saveData.temperature;
     this.furnaceLevel = saveData.furnaceLevel;
     this.hasSpear = saveData.hasSpear;
@@ -1190,6 +1458,12 @@ export default class MainScene extends Phaser.Scene {
       this.furnace.setScale(1.5);
       this.fogWall.setAlpha(0);
       this.fogCollider.enable = false;
+      
+      // Restore quarry
+      if (!this.quarry) {
+        this.quarry = this.add.image(650, 450, 'quarry');
+        this.quarry.setScale(0.8);
+      }
     }
 
     // Restore spear
@@ -1337,6 +1611,24 @@ export default class MainScene extends Phaser.Scene {
 
   private updateBlizzardUI() {
     const isBlizzardActive = this.blizzardManager.isBlizzardActive();
+    const wasBlizzardActive = this.blizzardOverlay.alpha > 0.1;
+    
+    // Fade in/out blizzard overlay
+    if (isBlizzardActive && !wasBlizzardActive) {
+      this.tweens.add({
+        targets: this.blizzardOverlay,
+        alpha: 0.5,
+        duration: 2000,
+        ease: 'Power2'
+      });
+    } else if (!isBlizzardActive && wasBlizzardActive) {
+      this.tweens.add({
+        targets: this.blizzardOverlay,
+        alpha: 0,
+        duration: 3000,
+        ease: 'Power2'
+      });
+    }
     
     // Show/hide Stoke Fire button during blizzard
     if (isBlizzardActive) {
@@ -1394,6 +1686,16 @@ export default class MainScene extends Phaser.Scene {
     const furnaceDist = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.furnace.x, this.furnace.y);
     if (furnaceDist < 100) {
       return true;
+    }
+    
+    // Check if player is near any igloo (provides shelter during blizzard)
+    for (const igloo of this.igloos) {
+      if (igloo.active) {
+        const iglooDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, igloo.x, igloo.y);
+        if (iglooDistance < 60) {
+          return true;
+        }
+      }
     }
     
     return false;

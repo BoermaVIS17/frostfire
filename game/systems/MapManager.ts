@@ -125,6 +125,12 @@ export default class MapManager {
 
       const tree = this.trees.create(x, y, 'tree') as Phaser.Physics.Arcade.Sprite;
       tree.setScale(0.08); // Match player scale
+      
+      // DEBUG: Show tree dimensions
+      console.log(`Tree Size: ${tree.width} x ${tree.height}`);
+      console.log(`Current Scale: ${tree.scaleX}`);
+      console.log(`Display Size: ${tree.displayWidth} x ${tree.displayHeight}`);
+      
       tree.setCircle(8, 2, 8);
       tree.setImmovable(true);
     }
@@ -153,6 +159,12 @@ export default class MapManager {
       const y = Phaser.Math.Between(50, 550);
       const snowPile = this.snowPilesGroup.create(x, y, 'snow_pile') as Phaser.Physics.Arcade.Sprite;
       snowPile.setScale(0.08); // Match player scale
+      
+      // DEBUG: Show snow pile dimensions
+      console.log(`Snow Pile Size: ${snowPile.width} x ${snowPile.height}`);
+      console.log(`Current Scale: ${snowPile.scaleX}`);
+      console.log(`Display Size: ${snowPile.displayWidth} x ${snowPile.displayHeight}`);
+      
       this.scene.tweens.add({
         targets: snowPile,
         y: snowPile.y - 3,

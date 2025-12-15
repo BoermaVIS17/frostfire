@@ -36,6 +36,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(5);
     this.setVisible(true);
     
+    // DEBUG: Show player dimensions
+    console.log(`Player Size: ${this.width} x ${this.height}`);
+    console.log(`Player Scale: ${this.scaleX}`);
+    console.log(`Player Display Size: ${this.displayWidth} x ${this.displayHeight}`);
+    
     // CRITICAL: Set physics body to tiny hitbox at feet only
     // Use small fixed values for the hitbox
     this.setBodySize(this.displayWidth * 0.5, this.displayHeight * 0.2);
